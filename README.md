@@ -71,15 +71,39 @@ C10–team–queenelizabeth/
 └── parallel_data.md
 
 ---
+## Training Pipeline
 
-## How to Run
-Install dependencies:
-pip install -r requirements.txt
+Our baseline system uses TF‑IDF retrieval to generate concise answers for the TRI Agriculture & Climate SLM benchmark.
 
-Run baseline pipeline:
-python scripts/kaggle_pipeline.py
+Pipeline steps:
+1. Load Kaggle documents and Q&A pairs.
+2. Preprocess text using lowercasing, tokenization, and stopword removal.
+3. Fit a TF‑IDF vectorizer on the extension documents.
+4. For each test question, compute cosine similarity to retrieve the most relevant document.
+5. Extract or generate a short answer based on the retrieved text.
 
-This generates a submission CSV for the Kaggle test set.
+The full pipeline is implemented in our Kaggle notebook:
+https://www.kaggle.com/code/andrewdevadason/queenelizabeth-tfidf-submission
+
+## Evaluation
+
+We evaluate our method using the TRI benchmark’s official metric:
+**mean Levenshtein distance** between our generated answers and hidden reference answers.
+
+Process:
+1. Generate answers for all test questions.
+2. Submit `submission.csv` to Kaggle.
+3. Kaggle computes Levenshtein distance and provides the final score.
+
+This ensures consistent comparison with all TRI Cohort 10 teams.
+
+
+## Reproduction Instructions
+
+Open our Kaggle notebook:
+https://www.kaggle.com/code/andrewdevadason/queenelizabeth-tfidf-submission
+
+Run all cells to generate `submission.csv` inside `/kaggle/working/`.
 
 ---
 
