@@ -33,7 +33,7 @@ submission.csv
 ## 2. Team-Generated Parallel Dataset (Sri Lanka + South Africa)
 
 ### Why This Dataset Exists
-Before TRI, our team was already working on a **Sri Lanka + South Africa Agricultural SLM (AgriSLM)** project.  
+Before Kaggle project, our team was already working on a **Sri Lanka + South Africa Agricultural SLM (AgriSLM)** project.  
 During that work, we created several **synthetic Q&A datasets** covering crop diseases, soil issues, climate adaptation, and livestock management.
 
 To support TRI’s educational goals, we **aligned our existing synthetic datasets to the Kaggle benchmark**.  
