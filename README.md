@@ -2,7 +2,7 @@
 # AgriSLM TRI Project — Team QueenElizabeth  
 Sri Lanka + South Africa Agricultural Small Language Model
 
-##Project Overview
+##Overview
 This repository contains our submission for TRI AI Cohort 10.  
 We fine‑tune a Small Language Model (SLM) to generate concise, extension‑style answers for farmers facing crop, soil, livestock, and climate challenges.
 
