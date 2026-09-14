@@ -111,7 +111,7 @@ AgriSLM should interpret trusted climate/weather information rather than claim t
 - Ernest Nchabeng — Team Leader
 - Andrew Devadason — Team Member
 
-**Mentor(s):** Add the assigned TRI mentor name(s) before final submission if required.
+**Mentor(s):** Detached.
 
 ## 📄 License
 
