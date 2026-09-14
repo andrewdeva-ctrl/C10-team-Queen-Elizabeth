@@ -92,6 +92,7 @@ C10-team-Queen-Elizabeth/
 │   ├── impact_statement_card.pdf
 │   └── stakeholder_engagement.pdf
 └── scripts/
+ ├── data_validation.py
     └── queenelizabeth-tfidf-submission.ipynb
 ```
 
