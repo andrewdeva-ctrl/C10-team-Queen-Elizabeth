@@ -3,3 +3,5 @@ scikit-learn>=1.0.0
 numpy>=1.21.0
 jupyter>=1.0.0
 notebook>=6.4.0
+pytest>=6.0.0
+pytest-cov>=2.12.0
