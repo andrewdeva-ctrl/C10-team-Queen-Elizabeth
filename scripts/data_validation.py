@@ -1,41 +1,41 @@
-"""
-Data Validation Script for AgriSLM Project
-This script validates the correspondence and integrity of data files.
-"""
-
-import os
 import csv
 import json
+import os
 import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+# Core schemas required by the benchmark competition datasets
+CORE_TRAIN_COLS = ["QuestionId", "question", "reference_answer"]
+CORE_TEST_COLS = ["QuestionId", "question"]
+
 class DataValidator:
-    """Validates data files for consistency and structure."""
+    """Validates data files for consistency, structure, and required schemas."""
     
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "../data"):
         self.data_dir = Path(data_dir)
         self.validation_report = {}
         self.errors = []
         self.warnings = []
-    
+
     def validate_all(self) -> Dict:
         """Run all validation checks."""
         print("🔍 Starting AgriSLM Data Validation...\n")
-        
         self.validate_csv_files()
         self.validate_jsonl_files()
         self.validate_file_correspondence()
-        self.validate_data_consistency()
-        
+        self.validate_core_schemas()
         self.generate_report()
         return self.validation_report
-    
+
     def validate_csv_files(self) -> None:
-        """Validate all CSV files."""
+        """Validate all CSV files for basic read integrity."""
         print("📊 Validating CSV files...")
         csv_files = list(self.data_dir.glob("*.csv"))
-        
+        if not csv_files:
+            print("  ⚠️ No CSV files found in data directory.")
+            return
+
         for csv_file in csv_files:
             try:
                 df = pd.read_csv(csv_file)
@@ -49,21 +49,19 @@ class DataValidator:
             except Exception as e:
                 self.errors.append(f"CSV Error in {csv_file.name}: {str(e)}")
                 print(f"  ❌ {csv_file.name}: {str(e)}")
-    
+
     def validate_jsonl_files(self) -> None:
         """Validate all JSONL files."""
         print("\n📋 Validating JSONL files...")
         jsonl_files = list(self.data_dir.glob("*.jsonl"))
-        
         for jsonl_file in jsonl_files:
             try:
                 lines = []
-                with open(jsonl_file, 'r') as f:
+                with open(jsonl_file, 'r', encoding='utf-8') as f:
                     for line in f:
                         if line.strip():
                             json.loads(line)
                             lines.append(line)
-                
                 self.validation_report[jsonl_file.name] = {
                     "status": "✅ Valid",
                     "lines": len(lines)
@@ -72,110 +70,62 @@ class DataValidator:
             except Exception as e:
                 self.errors.append(f"JSONL Error in {jsonl_file.name}: {str(e)}")
                 print(f"  ❌ {jsonl_file.name}: {str(e)}")
-    
+
     def validate_file_correspondence(self) -> None:
-        """Validate correspondence between related data files."""
-        print("\n🔗 Checking file correspondence...")
-        
-        try:
-            # Check if benchmark files exist
-            benchmark_files = [
-                'documents.csv',
-                'train_qa.csv',
-                'test_questions.csv',
-                'baseline_submission.csv',
-                'dataset-metadata.json'
-            ]
-            
-            missing_files = [f for f in benchmark_files if not (self.data_dir / f).exists()]
-            if missing_files:
-                self.warnings.append(f"Missing benchmark files: {missing_files}")
-                print(f"  ⚠️  Missing files: {missing_files}")
+        """Validate existence of critical benchmark files."""
+        print("\n🔗 Checking file presence...")
+        expected_files = ['train_qa.csv', 'test_questions.csv']
+        for fname in expected_files:
+            fpath = self.data_dir / fname
+            if fpath.exists():
+                print(f"  ✅ Found benchmark file: {fname}")
             else:
-                print(f"  ✅ All benchmark files present")
-            
-            # Check if demo data files exist
-            demo_files = [
-                'agrislm_team_demo_dataset.csv',
-                'agrislm_team_demo_dataset.jsonl'
-            ]
-            
-            missing_demo = [f for f in demo_files if not (self.data_dir / f).exists()]
-            if missing_demo:
-                self.warnings.append(f"Missing demo data files: {missing_demo}")
-                print(f"  ⚠️  Missing demo files: {missing_demo}")
-            else:
-                print(f"  ✅ All demo data files present")
-        
-        except Exception as e:
-            self.errors.append(f"Correspondence check error: {str(e)}")
-            print(f"  ❌ Error: {str(e)}")
-    
-    def validate_data_consistency(self) -> None:
-        """Validate consistency between CSV and JSONL formats."""
-        print("\n🔄 Validating data consistency...")
-        
-        try:
-            csv_path = self.data_dir / "agrislm_team_demo_dataset.csv"
-            jsonl_path = self.data_dir / "agrislm_team_demo_dataset.jsonl"
-            
-            if csv_path.exists() and jsonl_path.exists():
-                csv_df = pd.read_csv(csv_path)
-                
-                jsonl_lines = []
-                with open(jsonl_path, 'r') as f:
-                    for line in f:
-                        if line.strip():
-                            jsonl_lines.append(json.loads(line))
-                
-                if len(csv_df) == len(jsonl_lines):
-                    print(f"  ✅ Row count matches: {len(csv_df)} rows in both formats")
-                else:
-                    self.warnings.append(
-                        f"Row mismatch: CSV has {len(csv_df)} rows, JSONL has {len(jsonl_lines)} rows"
-                    )
-                    print(f"  ⚠️  Row count mismatch: CSV ({len(csv_df)}) vs JSONL ({len(jsonl_lines)})")
-        
-        except Exception as e:
-            self.warnings.append(f"Consistency check error: {str(e)}")
-            print(f"  ⚠️  Warning: {str(e)}")
-    
+                self.warnings.append(f"Benchmark file missing: {fname}")
+                print(f"  ⚠️ Missing benchmark file: {fname}")
+
+    def validate_core_schemas(self) -> None:
+        """Validate specific column requirements for training and testing datasets."""
+        print("\n🔎 Verifying core schemas...")
+        train_path = self.data_dir / "train_qa.csv"
+        test_path = self.data_dir / "test_questions.csv"
+
+        if train_path.exists():
+            train_df = pd.read_csv(train_path)
+            for col in CORE_TRAIN_COLS:
+                if col not in train_df.columns:
+                    self.errors.append(f"train_qa.csv missing core column: {col}")
+                    print(f"  ❌ train_qa.csv missing core column: {col}")
+            if train_df["question"].isnull().sum() > 0:
+                self.errors.append("Null question values found in train_qa.csv")
+
+        if test_path.exists():
+            test_df = pd.read_csv(test_path)
+            for col in CORE_TEST_COLS:
+                if col not in test_df.columns:
+                    self.errors.append(f"test_questions.csv missing core column: {col}")
+                    print(f"  ❌ test_questions.csv missing core column: {col}")
+            if test_df["question"].isnull().sum() > 0:
+                self.errors.append("Null question values found in test_questions.csv")
+
     def generate_report(self) -> None:
-        """Generate and print validation report."""
-        print("\n" + "="*60)
-        print("📋 VALIDATION REPORT")
-        print("="*60)
-        
-        print(f"\n✅ Files Validated: {len(self.validation_report)}")
-        
+        """Print summary report of errors and warnings."""
+        print("\n" + "="*40)
+        print("📋 VALIDATION SUMMARY REPORT")
+        print("="*40)
         if self.errors:
-            print(f"\n❌ Errors ({len(self.errors)}):")
-            for error in self.errors:
-                print(f"   - {error}")
-        
+            print(f"❌ Errors ({len(self.errors)}):")
+            for err in self.errors:
+                print(f"  - {err}")
+        else:
+            print("✅ No critical errors found.")
+
         if self.warnings:
-            print(f"\n⚠️  Warnings ({len(self.warnings)}):")
-            for warning in self.warnings:
-                print(f"   - {warning}")
-        
-        if not self.errors:
-            print("\n🎉 All validations passed!")
-        
-        print("\n" + "="*60)
-
-
-def main():
-    """Run data validation."""
-    validator = DataValidator()
-    report = validator.validate_all()
-    
-    # Save report to JSON
-    report_path = Path("data_validation_report.json")
-    with open(report_path, 'w') as f:
-        json.dump(validator.validation_report, f, indent=2)
-    
-    print(f"\n📁 Validation report saved to: {report_path}")
+            print(f"\n⚠️ Warnings ({len(self.warnings)}):")
+            for warn in self.warnings:
+                print(f"  - {warn}")
+        print("="*40 + "\n")
 
 
 if __name__ == "__main__":
-    main()
+    validator = DataValidator()
+    validator.validate_all()
