@@ -30,7 +30,7 @@ The current reproducible baseline uses **TF-IDF retrieval** rather than claiming
 1. Load competition documents, training Q&A and test questions.
 2. Preprocess text using lowercasing, tokenization and stopword removal.
 3. Build TF-IDF representations of the extension content.
-4. Compute similarity between each test question and candidate source content.
+4. Compute cosine similarity between each test question and candidate source content.
 5. Retrieve the most relevant content and produce concise answers in `QuestionId,Answer` format.
 6. Save the final submission CSV for Kaggle evaluation.
 
